@@ -236,7 +236,7 @@
   function shuffle() {
     // Perform many random valid moves from solved state to ensure solvability
     let emptyIdx = EMPTY;
-    for (let i = 0; i < 500; i++) {
+    for (let i = 0; i < 100; i++) {
       const neighbours = getNeighbours(emptyIdx);
       const pick = neighbours[Math.floor(Math.random() * neighbours.length)];
       [tiles[emptyIdx], tiles[pick]] = [tiles[pick], tiles[emptyIdx]];
