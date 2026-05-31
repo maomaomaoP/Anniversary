@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Challenge 1</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Jost:wght@300;400&family=Caveat:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+ 
+  :root {
+    --green-dark:  #2d5a1b;
+    --green-mid:   #4a8c2a;
+    --green-light: #7abb4a;
+    --sky:         #5baee0;
+    --yellow:      #f0c040;
+    --red:         #e05050;
+    --cream:       #fefaf7;
+    --pink-light:  #fdf0f3;
+    --pink-dark:   #6b2a3f;
+    --text:        #2a3a1a;
+  }
+ 
+  body {
+    font-family: 'Jost', sans-serif;
+    background: linear-gradient(180deg, #d4edaa 0%, #a8d878 40%, #7abb4a 100%);
+    min-height: 100svh;
+    color: var(--text);
+  }
+ 
+  /* ── HEADER ── */
+  .page-header {
+    background: rgba(255,255,255,0.25);
+    backdrop-filter: blur(6px);
+    text-align: center;
+    padding: 1.25rem 1rem 1rem;
+    border-bottom: 1px solid rgba(255,255,255,0.4);
+  }
+ 
+  .stop-label {
+    font-family: 'Jost', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 300;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--green-dark);
+    opacity: 0.8;
+    margin-bottom: 0.3rem;
+  }
+ 
+  .page-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem;
+    font-weight: 300;
+    color: var(--green-dark);
+  }
+ 
+  /* ── PHOTO ── */
+  .photo-strip {
+    display: flex;
+    justify-content: center;
+    padding: 1.25rem 1rem 0.5rem;
+  }
+ 
+  .polaroid {
+    background: #fffef8;
+    padding: 8px 8px 30px;
+    box-shadow: 0 4px 16px rgba(45,90,27,0.3);
+    transform: rotate(-2deg);
+    max-width: 220px;
+    width: 100%;
+  }
+ 
+  .polaroid img {
+    width: 100%;
+    aspect-ratio: 4/3;
+    object-fit: cover;
+    object-position: center top;
+    display: block;
+  }
+ 
+  /* ── INSTRUCTIONS ── */
+  .instructions {
+    text-align: center;
+    padding: 0.75rem 1.5rem 0.5rem;
+    font-family: 'Caveat', cursive;
+    font-size: 1.2rem;
+    color: var(--green-dark);
+  }
+ 
+  /* ── GAME ── */
+  .game-area {
+    padding: 0.75rem 1rem 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+  }
+ 
+  .jars-row {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    flex-wrap: nowrap;
+  }
+ 
+  .jar-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    gap: 4px;
+  }
+ 
+  .jar {
+    width: 52px;
+    height: 110px;
+    border-radius: 6px 6px 18px 18px;
+    border: 3px solid #5a3a1a;
+    background: rgba(255,255,255,0.15);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    position: relative;
+    transition: transform 0.15s ease;
+    box-shadow: inset 0 0 8px rgba(255,255,255,0.3), 2px 3px 8px rgba(45,90,27,0.2);
+  }
+ 
+  /* jam jar lid */
+  .jar-lid {
+    width: 58px;
+    height: 12px;
+    background: linear-gradient(180deg, #7a4a1a, #5a3a1a);
+    border-radius: 4px 4px 0 0;
+    border: 2px solid #4a2a0a;
+    margin-bottom: -2px;
+    flex-shrink: 0;
+  }
+ 
+  .jar.selected {
+    transform: translateY(-10px);
+    box-shadow: inset 0 0 8px rgba(255,255,255,0.3), 0 8px 20px rgba(45,90,27,0.4);
+  }
+ 
+  .jar.complete {
+    border-color: var(--green-mid);
+    box-shadow: inset 0 0 8px rgba(255,255,255,0.3), 0 0 12px rgba(74,140,42,0.6);
+  }
+ 
+  .layer {
+    width: 100%;
+    transition: height 0.3s ease;
+    position: relative;
+  }
+ 
+  .layer::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: rgba(255,255,255,0.25);
+  }
+ 
+  /* ── BUTTONS ── */
+  .btn-row {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+  }
+ 
+  .btn {
+    font-family: 'Jost', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 400;
+    letter-spacing: 0.12em;
+    padding: 0.6rem 1.4rem;
+    border-radius: 100px;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.15s, opacity 0.15s;
+  }
+  .btn:active { transform: scale(0.96); }
+ 
+  .btn-reset {
+    background: rgba(255,255,255,0.4);
+    color: var(--green-dark);
+    border: 1px solid rgba(45,90,27,0.3);
+  }
+ 
+  /* ── WIN OVERLAY ── */
+  .win-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(45,90,27,0.85);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    text-align: center;
+    padding: 2rem;
+  }
+ 
+  .win-overlay.show { display: flex; }
+ 
+  .win-card {
+    background: #fffef8;
+    border-radius: 4px;
+    padding: 12px 12px 40px;
+    max-width: 300px;
+    width: 100%;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    transform: rotate(-1.5deg);
+  }
+ 
+  .win-card img {
+    width: 100%;
+    aspect-ratio: 4/3;
+    object-fit: cover;
+    display: block;
+    margin-bottom: 0;
+  }
+ 
+  .win-text {
+    margin-top: 1.5rem;
+    color: white;
+  }
+ 
+  .win-text h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem;
+    font-weight: 300;
+    margin-bottom: 0.5rem;
+  }
+ 
+  .win-text p {
+    font-family: 'Caveat', cursive;
+    font-size: 1.3rem;
+    opacity: 0.9;
+  }
+ 
+  .win-emoji {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+  }
+</style>
+</head>
+<body>
+ 
+<header class="page-header">
+  <p class="stop-label">Challenge One</p>
+  <h1 class="page-title">Water Sort</h1>
+</header>
+ 
+<div class="photo-strip">
+  <div class="polaroid">
+    <img src="../images/1st_pic.jpeg" alt="Us">
+  </div>
+</div>
+ 
+<p class="instructions">Sort the colours so each jar is one colour to unlock your next stop!</p>
+ 
+<div class="game-area">
+  <div class="jars-row" id="row1"></div>
+  <div class="jars-row" id="row2"></div>
+  <div class="btn-row">
+    <button class="btn btn-reset" onclick="resetGame()">Restart</button>
+  </div>
+</div>
+ 
+<div class="win-overlay" id="winOverlay">
+  <div class="win-emoji">🎉</div>
+  <div class="win-card">
+    <img src="../images/1st_pic.jpeg" alt="Us">
+  </div>
+  <div class="win-text">
+    <h2>Well done!</h2>
+    <p>Next stop... <strong>Jam Garden! 🍓</strong></p>
+  </div>
+</div>
+ 
+<script>
+  const COLORS = {
+    OL: { bg: '#7a9030' },  // olive
+    G:  { bg: '#6abf6a' },  // green
+    DB: { bg: '#3a50e0' },  // dark blue
+    SK: { bg: '#7bbde8' },  // sky blue
+    GR: { bg: '#808080' },  // grey
+    O:  { bg: '#f0922a' },  // orange
+    PU: { bg: '#7030a0' },  // purple
+    PK: { bg: '#e87090' },  // pink
+    R:  { bg: '#cc3020' },  // red
+  };
+ 
+  const CAPACITY = 4;
+ 
+  // User's layout top→bottom, reversed to bottom→top for storage
+  // R1J1: olive, green, green, dark blue  → [DB, G,  G,  OL]
+  // R1J2: sky, grey, olive, orange        → [O,  OL, GR, SK]
+  // R1J3: olive, green, pink, dark blue   → [DB, PK, G,  OL]
+  // R1J4: sky, green, red, grey           → [GR, R,  G,  SK]
+  // R1J5: purple, dark blue, orange, orange → [O, O,  DB, PU]
+  // R1J6: grey, purple, purple, sky       → [SK, PU, PU, GR]
+  // R2J1: dark blue, olive, red, red      → [R,  R,  OL, DB]
+  // R2J2: pink, sky, purple, red          → [R,  PU, SK, PK]
+  // R2J3: pink, grey, pink, orange        → [O,  PK, GR, PK]
+  const PUZZLE = [
+    ['DB', 'G',  'G',  'OL'],
+    ['O',  'OL', 'GR', 'SK'],
+    ['DB', 'PK', 'G',  'OL'],
+    ['GR', 'R',  'G',  'SK'],
+    ['O',  'O',  'DB', 'PU'],
+    ['SK', 'PU', 'PU', 'GR'],
+    ['R',  'R',  'OL', 'DB'],
+    ['R',  'PU', 'SK', 'PK'],
+    ['O',  'PK', 'GR', 'PK'],
+    [],
+    [],
+  ];
+ 
+  let state = [];
+  let selected = null;
+ 
+  function deepCopy(s) { return s.map(j => [...j]); }
+ 
+  function resetGame() {
+    state = deepCopy(PUZZLE);
+    selected = null;
+    render();
+    document.getElementById('winOverlay').classList.remove('show');
+  }
+ 
+  function topColor(jar) {
+    return jar.length > 0 ? jar[jar.length - 1] : null;
+  }
+ 
+  function canPour(from, to) {
+    if (from === to) return false;
+    if (state[from].length === 0) return false;
+    if (state[to].length === CAPACITY) return false;
+    if (state[to].length === 0) return true;
+    return topColor(state[from]) === topColor(state[to]);
+  }
+ 
+  function pour(from, to) {
+    const color = topColor(state[from]);
+    while (state[from].length > 0 && topColor(state[from]) === color && state[to].length < CAPACITY) {
+      state[to].push(state[from].pop());
+    }
+  }
+ 
+  function isComplete(jar) {
+    return jar.length === CAPACITY && jar.every(c => c === jar[0]);
+  }
+ 
+  function checkWin() {
+    return state.every(jar => jar.length === 0 || isComplete(jar));
+  }
+ 
+  function handleJarClick(idx) {
+    if (selected === null) {
+      if (state[idx].length === 0) return;
+      selected = idx;
+    } else {
+      if (canPour(selected, idx)) {
+        pour(selected, idx);
+        selected = null;
+        render();
+        if (checkWin()) {
+          setTimeout(() => document.getElementById('winOverlay').classList.add('show'), 600);
+        }
+      } else {
+        selected = idx === selected ? null : idx;
+      }
+    }
+    render();
+  }
+ 
+  function render() {
+    const rows = [document.getElementById('row1'), document.getElementById('row2')];
+    rows.forEach(r => r.innerHTML = '');
+ 
+    state.forEach((jar, idx) => {
+      const rowEl = rows[idx < 6 ? 0 : 1];
+ 
+      const wrapper = document.createElement('div');
+      wrapper.className = 'jar-wrapper';
+      wrapper.onclick = () => handleJarClick(idx);
+ 
+      const lid = document.createElement('div');
+      lid.className = 'jar-lid';
+ 
+      const jarEl = document.createElement('div');
+      jarEl.className = 'jar' + (selected === idx ? ' selected' : '') + (isComplete(jar) && jar.length > 0 ? ' complete' : '');
+ 
+      // Render bottom→top: reverse the array for display so index 0 (bottom) appears at the bottom
+      const displayLayers = [...jar].reverse();
+      displayLayers.forEach(color => {
+        const layer = document.createElement('div');
+        layer.className = 'layer';
+        layer.style.height = (110 / CAPACITY) + 'px';
+        layer.style.background = COLORS[color].bg;
+        jarEl.appendChild(layer);
+      });
+ 
+      wrapper.appendChild(lid);
+      wrapper.appendChild(jarEl);
+      rowEl.appendChild(wrapper);
+    });
+  }
+ 
+  resetGame();
+</script>
+</body>
+</html>
+ 
