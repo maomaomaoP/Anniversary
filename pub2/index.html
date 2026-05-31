@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Challenge 2</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Jost:wght@300;400&family=Caveat:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+ 
+  body {
+    font-family: 'Jost', sans-serif;
+    background: linear-gradient(160deg, #2a0a3a 0%, #4a1a6a 40%, #6a2a8a 100%);
+    min-height: 100svh;
+    color: white;
+  }
+ 
+  .page-header {
+    text-align: center;
+    padding: 1.5rem 1rem 1rem;
+    background: rgba(255,255,255,0.08);
+    border-bottom: 1px solid rgba(255,255,255,0.15);
+  }
+ 
+  .stop-label {
+    font-size: 0.7rem;
+    font-weight: 300;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    opacity: 0.7;
+    margin-bottom: 0.3rem;
+  }
+ 
+  .page-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem;
+    font-weight: 300;
+  }
+ 
+  .instructions {
+    text-align: center;
+    padding: 0.75rem 1.5rem 0.5rem;
+    font-family: 'Caveat', cursive;
+    font-size: 1.2rem;
+    opacity: 0.9;
+  }
+ 
+  /* ── PHOTO REVEAL AREA ── */
+  .reveal-area {
+    position: relative;
+    width: 100%;
+    max-width: 680px;
+    margin: 0.75rem auto 0;
+    aspect-ratio: 4/3;
+    overflow: hidden;
+  }
+ 
+  .reveal-photo {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+    display: block;
+  }
+ 
+  /* Grid of card tiles overlaying the photo */
+  .card-grid {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    grid-template-rows: repeat(4, 1fr);
+    gap: 2px;
+  }
+ 
+  .card {
+    background: #4a1a6a;
+    border: 1px solid rgba(255,255,255,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.15s;
+    user-select: none;
+    position: relative;
+    border-radius: 4px;
+  }
+ 
+  .card:hover:not(.flipped):not(.matched) {
+    background: #6a2a9a;
+    transform: scale(0.95);
+  }
+ 
+  .card.flipped {
+    background: #9a50c0;
+    border-color: rgba(255,255,255,0.4);
+  }
+ 
+  .card.matched {
+    background: transparent;
+    border-color: transparent;
+    pointer-events: none;
+    cursor: default;
+  }
+ 
+  /* icon hidden by default, shown when flipped */
+  .card .icon {
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+ 
+  .card.flipped .icon {
+    opacity: 1;
+  }
+ 
+  .card.matched .icon {
+    opacity: 0;
+  }
+ 
+  /* ── WIN OVERLAY ── */
+  .win-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(42,10,58,0.92);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    text-align: center;
+    padding: 2rem;
+  }
+ 
+  .win-overlay.show { display: flex; }
+ 
+  .win-polaroid {
+    background: #fffef8;
+    padding: 10px 10px 36px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    transform: rotate(-1.5deg);
+    max-width: 280px;
+    width: 100%;
+    margin-bottom: 1.5rem;
+  }
+ 
+  .win-polaroid img {
+    width: 100%;
+    aspect-ratio: 4/3;
+    object-fit: cover;
+    object-position: center top;
+    display: block;
+  }
+ 
+  .win-text h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem;
+    font-weight: 300;
+    margin-bottom: 0.5rem;
+    color: white;
+  }
+ 
+  .win-text p {
+    font-family: 'Caveat', cursive;
+    font-size: 1.4rem;
+    color: rgba(255,255,255,0.9);
+  }
+ 
+  .win-emoji {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+  }
+ 
+  .btn-reset {
+    margin-top: 1.25rem;
+    font-family: 'Jost', sans-serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    padding: 0.6rem 1.5rem;
+    border-radius: 100px;
+    border: 1px solid rgba(255,255,255,0.4);
+    background: transparent;
+    color: white;
+    cursor: pointer;
+  }
+ 
+  .progress {
+    text-align: center;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    opacity: 0.6;
+    padding: 0.4rem 0 0.6rem;
+  }
+</style>
+</head>
+<body>
+ 
+<header class="page-header">
+  <p class="stop-label">Challenge Two</p>
+  <h1 class="page-title">Memory Match</h1>
+</header>
+ 
+<p class="instructions">Match all the pairs to reveal a hidden photo!</p>
+<p class="progress" id="progress">0 / 16 pairs found</p>
+ 
+<div class="reveal-area">
+  <img class="reveal-photo" src="../images/xmas.jpeg" alt="Us">
+  <div class="card-grid" id="grid"></div>
+</div>
+ 
+<div class="win-overlay" id="winOverlay">
+  <div class="win-emoji">🎉</div>
+  <div class="win-polaroid">
+    <img src="../images/xmas.jpeg" alt="Us">
+  </div>
+  <div class="win-text">
+    <h2>Well done!</h2>
+    <p>Next stop... <strong>The Griffin! 🍺</strong></p>
+  </div>
+</div>
+ 
+<script>
+  const ICONS = [
+    '🐾','🌹','👄','💧',
+    '☄️','♣️','🏓','🍺',
+    '🦋','😊','🍋','🍹',
+    '🎮','🎬','📷','🌼'
+  ];
+ 
+  let cards = [];
+  let flipped = [];
+  let matched = 0;
+  let locked = false;
+ 
+  function shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+ 
+  function buildGrid() {
+    const grid = document.getElementById('grid');
+    grid.innerHTML = '';
+    flipped = [];
+    matched = 0;
+    locked = false;
+    updateProgress();
+ 
+    // Duplicate icons to make pairs, shuffle
+    const deck = shuffle([...ICONS, ...ICONS]);
+ 
+    cards = deck.map((icon, idx) => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.dataset.icon = icon;
+      card.dataset.idx = idx;
+ 
+      const iconEl = document.createElement('span');
+      iconEl.className = 'icon';
+      iconEl.textContent = icon;
+      card.appendChild(iconEl);
+ 
+      card.addEventListener('click', () => handleClick(card));
+      grid.appendChild(card);
+      return card;
+    });
+  }
+ 
+  function handleClick(card) {
+    if (locked) return;
+    if (card.classList.contains('flipped')) return;
+    if (card.classList.contains('matched')) return;
+ 
+    card.classList.add('flipped');
+    flipped.push(card);
+ 
+    if (flipped.length === 2) {
+      locked = true;
+      const [a, b] = flipped;
+      if (a.dataset.icon === b.dataset.icon) {
+        // Match!
+        setTimeout(() => {
+          a.classList.add('matched');
+          b.classList.add('matched');
+          flipped = [];
+          locked = false;
+          matched++;
+          updateProgress();
+          if (matched === ICONS.length) {
+            setTimeout(() => document.getElementById('winOverlay').classList.add('show'), 800);
+          }
+        }, 400);
+      } else {
+        // No match
+        setTimeout(() => {
+          a.classList.remove('flipped');
+          b.classList.remove('flipped');
+          flipped = [];
+          locked = false;
+        }, 900);
+      }
+    }
+  }
+ 
+  function updateProgress() {
+    document.getElementById('progress').textContent = `${matched} / ${ICONS.length} pairs found`;
+  }
+ 
+  buildGrid();
+</script>
+</body>
+</html>
+ 
