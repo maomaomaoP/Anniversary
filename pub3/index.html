@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Challenge 3</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Jost:wght@300;400&family=Caveat:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+ 
+  body {
+    font-family: 'Jost', sans-serif;
+    background: linear-gradient(160deg, #0a1a2e 0%, #1a3a5e 50%, #2a5a8e 100%);
+    min-height: 100svh;
+    color: white;
+  }
+ 
+  .page-header {
+    text-align: center;
+    padding: 1.25rem 1rem 1rem;
+    background: rgba(255,255,255,0.08);
+    border-bottom: 1px solid rgba(255,255,255,0.15);
+  }
+ 
+  .stop-label {
+    font-size: 0.7rem;
+    font-weight: 300;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    opacity: 0.7;
+    margin-bottom: 0.3rem;
+  }
+ 
+  .page-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem;
+    font-weight: 300;
+  }
+ 
+  .photo-strip {
+    display: flex;
+    justify-content: center;
+    padding: 1rem 1rem 0.5rem;
+  }
+ 
+  .polaroid {
+    background: #fffef8;
+    padding: 8px 8px 28px;
+    box-shadow: 0 4px 16px rgba(0,20,60,0.4);
+    transform: rotate(1.5deg);
+    max-width: 180px;
+    width: 100%;
+  }
+ 
+  .polaroid img {
+    width: 100%;
+    aspect-ratio: 4/3;
+    object-fit: cover;
+    object-position: center top;
+    display: block;
+  }
+ 
+  /* ── CROSSWORD ── */
+  .crossword-wrap {
+    overflow-x: auto;
+    padding: 0.5rem 0.75rem 1rem;
+    display: flex;
+    justify-content: center;
+  }
+ 
+  .crossword-grid {
+    display: grid;
+    grid-template-columns: repeat(15, 1fr);
+    gap: 2px;
+    width: min(98vw, 560px);
+  }
+ 
+  .cell {
+    aspect-ratio: 1;
+    background: transparent;
+    position: relative;
+  }
+ 
+  .cell.active {
+    background: white;
+  }
+ 
+  .cell.spine {
+    background: #5b9bd5;
+  }
+ 
+  .cell.active input, .cell.spine input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: transparent;
+    text-align: center;
+    text-transform: uppercase;
+    font-family: 'Jost', sans-serif;
+    font-size: clamp(0.55rem, 2vw, 0.9rem);
+    font-weight: 500;
+    color: #1a3a5e;
+    padding: 0;
+    outline: none;
+    cursor: pointer;
+    caret-color: transparent;
+  }
+ 
+  .cell.spine input {
+    color: #000000;
+    font-weight: 700;
+  }
+ 
+  .cell.correct input {
+    background: rgba(100,200,100,0.3);
+    color: #1a3a5e;
+  }
+ 
+  .cell.spine.correct input {
+    background: rgba(100,200,255,0.3);
+    color: white;
+  }
+ 
+  .cell-num {
+    position: absolute;
+    top: 1px;
+    left: 2px;
+    font-size: clamp(0.35rem, 1.2vw, 0.55rem);
+    color: #1a3a5e;
+    line-height: 1;
+    pointer-events: none;
+    z-index: 2;
+  }
+ 
+  .cell.spine .cell-num {
+    color: rgba(255,255,255,0.7);
+  }
+ 
+  /* ── CLUES ── */
+  .clues-section {
+    padding: 0.5rem 1rem 1.5rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 1.5rem;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+ 
+  .clues-col h3 {
+    font-family: 'Jost', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 400;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    opacity: 0.6;
+    margin-bottom: 0.6rem;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+    padding-bottom: 0.4rem;
+  }
+ 
+  .clue {
+    font-size: 0.78rem;
+    line-height: 1.4;
+    margin-bottom: 0.55rem;
+    opacity: 0.9;
+  }
+ 
+  .clue strong {
+    color: #7ab8f0;
+  }
+ 
+  .check-btn {
+    display: block;
+    margin: 0 auto 1.5rem;
+    font-family: 'Jost', sans-serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    padding: 0.6rem 1.8rem;
+    border-radius: 100px;
+    border: 1px solid rgba(255,255,255,0.4);
+    background: transparent;
+    color: white;
+    cursor: pointer;
+  }
+ 
+  /* ── WIN OVERLAY ── */
+  .win-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(10,26,46,0.93);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    text-align: center;
+    padding: 2rem;
+  }
+ 
+  .win-overlay.show { display: flex; }
+ 
+  .win-polaroid {
+    background: #fffef8;
+    padding: 10px 10px 36px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    transform: rotate(-1.5deg);
+    max-width: 260px;
+    width: 100%;
+    margin-bottom: 1.5rem;
+  }
+ 
+  .win-polaroid img {
+    width: 100%;
+    aspect-ratio: 4/3;
+    object-fit: cover;
+    object-position: center top;
+    display: block;
+  }
+ 
+  .win-text h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem;
+    font-weight: 300;
+    color: white;
+    margin-bottom: 0.5rem;
+  }
+ 
+  .win-text p {
+    font-family: 'Caveat', cursive;
+    font-size: 1.4rem;
+    color: rgba(255,255,255,0.9);
+  }
+ 
+  .win-emoji { font-size: 2.5rem; margin-bottom: 1rem; }
+</style>
+</head>
+<body>
+ 
+<header class="page-header">
+  <p class="stop-label">Challenge Three</p>
+  <h1 class="page-title">Crossword</h1>
+</header>
+ 
+<div class="photo-strip">
+  <div class="polaroid">
+    <img src="../images/niagra.jpeg" alt="Niagara">
+  </div>
+</div>
+ 
+<div class="crossword-wrap">
+  <div class="crossword-grid" id="grid"></div>
+</div>
+ 
+<button class="check-btn" onclick="checkAnswers()">Check Answers</button>
+ 
+<div class="clues-section">
+  <div class="clues-col">
+    <h3>Across</h3>
+    <p class="clue"><strong>2</strong> Fluffbutt</p>
+    <p class="clue"><strong>4</strong> A falls where we got DRENCHED for a picture</p>
+    <p class="clue"><strong>6</strong> The wusbag</p>
+    <p class="clue"><strong>8</strong> You cheeks go like this when you get too hot</p>
+    <p class="clue"><strong>10</strong> Where it all began</p>
+    <p class="clue"><strong>12</strong> A certain number of clubs we keep finding...</p>
+    <p class="clue"><strong>13</strong> The barking boy of many licks</p>
+    <p class="clue"><strong>14</strong> Our favourite game</p>
+  </div>
+  <div class="clues-col">
+    <h3>Down</h3>
+    <p class="clue"><strong>1</strong> ???</p>
+    <p class="clue"><strong>3</strong> The sexiest, kindest, most caring, most beautiful girl ever</p>
+    <p class="clue"><strong>5</strong> Who you and your Dad will be voting for</p>
+    <p class="clue"><strong>7</strong> Best part of a fry-up</p>
+    <p class="clue"><strong>9</strong> Happy anniversary month!</p>
+    <p class="clue"><strong>11</strong> The place you and Joseph walked to, to see some graves</p>
+  </div>
+</div>
+ 
+<div class="win-overlay" id="winOverlay">
+  <div class="win-emoji">🎉</div>
+  <div class="win-polaroid">
+    <img src="../images/niagra.jpeg" alt="Niagara">
+  </div>
+  <div class="win-text">
+    <h2>Well done!</h2>
+    <p>Next stop... <strong>Amber Rooms! 🍸</strong></p>
+  </div>
+</div>
+ 
+<script>
+  // Grid is 15 cols x 15 rows (0-indexed)
+  // AMBER ROOMS spine: col 5, rows 0-9
+  // Each entry: [row, col, direction, answer, clueNumber]
+ 
+  const SPINE_COL = 6;
+  const SPINE = ['A','M','B','E','R','R','O','O','M','S'];
+ 
+  const ENTRIES = [
+    // Across
+    // 2: MYLA — M on spine col 6, row 1
+    { num: 2,  row: 1,  col: 6,  dir: 'A', ans: 'MYLA' },
+    // 4: NIAGRA — starts under box 1 of 3 down (col 9), row 2
+    { num: 4,  row: 2,  col: 9,  dir: 'A', ans: 'NIAGRA' },
+    // 6: RALPHIE — starts col 0, row 3, E lands on spine col 6
+    { num: 6,  row: 3,  col: 0,  dir: 'A', ans: 'RALPHIE' },
+    // 8: ROSY — R on spine col 6, row 4
+    { num: 8,  row: 4,  col: 6,  dir: 'A', ans: 'ROSY' },
+    // 10: LOUGHBOROUGH — shifted one left, start col 0, row 6
+    { num: 10, row: 6,  col: 0,  dir: 'A', ans: 'LOUGHBOROUGH' },
+    // 12: SIX — S on spine col 6, row 9
+    { num: 12, row: 9,  col: 6,  dir: 'A', ans: 'SIX' },
+    // 13: THEO — start col 10, row 9. H at col 11 overlaps 2nd H of HATHERN
+    { num: 13, row: 9,  col: 10, dir: 'A', ans: 'THEO' },
+    // 14: STARDEW — start col 8, row 11. 4th box (R) at col 11 overlaps 11 down
+    { num: 14, row: 11, col: 8,  dir: 'A', ans: 'STARDEW' },
+    // Down
+    // 3: ANDY — starts at A of MYLA (4th letter col 9), row 1
+    { num: 3,  row: 1,  col: 9,  dir: 'D', ans: 'ANDY' },
+    // 5: REFORM — 5th box of 4 across. 4 across starts col 9, 5th box = col 13, row 2
+    { num: 5,  row: 2,  col: 13, dir: 'D', ans: 'REFORM' },
+    // 7: HASHBROWN — 5th box of 6 across. 6 across starts col 0, 5th box = col 4, row 3
+    { num: 7,  row: 3,  col: 4,  dir: 'D', ans: 'HASHBROWN' },
+    // 9: JUNE — 3rd box of 10 across one up. 10 across col 0 row 6, 3rd box = col 2, one up = row 5
+    { num: 9,  row: 5,  col: 2,  dir: 'D', ans: 'JUNE' },
+    // 11: HATHERN — final box of 10 across. LOUGHBOROUGH is 12 letters, col 0-11, row 6. Final = col 11
+    { num: 11, row: 6,  col: 11, dir: 'D', ans: 'HATHERN' },
+  ];
+ 
+  // Build a 15x15 grid of nulls, then mark active cells
+  const ROWS = 15, COLS = 15;
+  let grid = Array.from({length: ROWS}, () => Array(COLS).fill(null));
+  // null = black, object = {letter, isSpine, num}
+ 
+  // Place spine
+  SPINE.forEach((letter, i) => {
+    grid[i][SPINE_COL] = { answer: letter, isSpine: true, num: i === 0 ? 1 : null };
+  });
+ 
+  // Place entries
+  ENTRIES.forEach(e => {
+    for (let i = 0; i < e.ans.length; i++) {
+      const r = e.dir === 'A' ? e.row : e.row + i;
+      const c = e.dir === 'A' ? e.col + i : e.col;
+      if (!grid[r][c]) grid[r][c] = { answer: e.ans[i], isSpine: false, num: null };
+      else grid[r][c].answer = e.ans[i]; // spine cells already placed
+      if (i === 0 && e.num && !grid[r][c].num) grid[r][c].num = e.num;
+    }
+  });
+ 
+  // Set clue numbers on first cells
+  ENTRIES.forEach(e => {
+    const r = e.row, c = e.col;
+    if (grid[r][c]) grid[r][c].num = e.num;
+  });
+  grid[0][SPINE_COL].num = 1;
+ 
+  // Render
+  const gridEl = document.getElementById('grid');
+  const inputs = [];
+ 
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      const data = grid[r][c];
+ 
+      if (data) {
+        cell.classList.add(data.isSpine ? 'spine' : 'active');
+ 
+        if (data.num) {
+          const num = document.createElement('span');
+          num.className = 'cell-num';
+          num.textContent = data.num;
+          cell.appendChild(num);
+        }
+ 
+        const input = document.createElement('input');
+        input.maxLength = 1;
+        input.dataset.answer = data.answer;
+        input.dataset.spine = data.isSpine ? '1' : '0';
+        input.type = 'text';
+        input.inputMode = 'text';
+        input.autocomplete = 'off';
+        input.autocorrect = 'off';
+        input.autocapitalize = 'characters';
+        input.spellcheck = false;
+        input.dataset.row = r;
+        input.dataset.col = c;
+ 
+        input.addEventListener('focus', e => {
+          e.target.select();
+        });
+ 
+        input.addEventListener('input', e => {
+          const val = e.target.value.toUpperCase().replace(/[^A-Z]/g, '');
+          e.target.value = val ? val[val.length - 1] : '';
+          // Auto-advance to next input
+          if (val) {
+            const allInputs = Array.from(document.querySelectorAll('.cell.active input, .cell.spine input'));
+            const idx = allInputs.indexOf(e.target);
+            if (idx < allInputs.length - 1) allInputs[idx + 1].focus();
+          }
+        });
+ 
+        input.addEventListener('keydown', e => {
+          if (e.key === 'Backspace' && !e.target.value) {
+            const allInputs = Array.from(document.querySelectorAll('.cell.active input, .cell.spine input'));
+            const idx = allInputs.indexOf(e.target);
+            if (idx > 0) { allInputs[idx - 1].value = ''; allInputs[idx - 1].focus(); }
+          }
+        });
+ 
+        cell.appendChild(input);
+        inputs.push(input);
+      }
+ 
+      gridEl.appendChild(cell);
+    }
+  }
+ 
+  function checkAnswers() {
+    let allCorrect = true;
+    inputs.forEach(input => {
+      const correct = input.value.toUpperCase() === input.dataset.answer.toUpperCase();
+      const cell = input.parentElement;
+      if (input.value) {
+        cell.classList.toggle('correct', correct);
+      }
+      if (!correct) allCorrect = false;
+    });
+    if (allCorrect) {
+      setTimeout(() => document.getElementById('winOverlay').classList.add('show'), 400);
+    }
+  }
+</script>
+</body>
+</html>
+ 
