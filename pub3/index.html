@@ -50,11 +50,26 @@
     transform: rotate(1.5deg);
     max-width: 300px;
     width: 100%;
+    position: relative;
+  }
+ 
+  .polaroid::before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 40% 35%, #7ab8f0, #1a4a8a);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+    z-index: 3;
   }
  
   .polaroid img {
     width: 100%;
-    aspect-ratio: 4/3;
+    aspect-ratio: 3/4;
     object-fit: cover;
     object-position: center top;
     display: block;
